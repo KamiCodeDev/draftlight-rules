@@ -29,15 +29,15 @@ jobs:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
       - run: npm ci --ignore-scripts
       - run: npx vitest run tools
       - id: pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
       - id: sync
         run: node tools/algo-sync/run.ts --out site --prev-url "${{ steps.pages.outputs.base_url }}" ${{ inputs.reviewed && '--reviewed' || '' }}
         env:
@@ -53,9 +53,9 @@ jobs:
       - if: steps.sync.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
         run: rm -f site/issue.md && if ls pages/*.html >/dev/null 2>&1; then cp pages/*.html site/; fi
       - if: steps.sync.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: site
       - id: deploy
         if: steps.sync.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
