@@ -1,5 +1,5 @@
 name: algo-sync
-# Daily: rebuild the AlgoLens rules pack from xai-org/x-algorithm and publish it
+# Daily: rebuild the Draftlight rules pack from xai-org/x-algorithm and publish it
 # to GitHub Pages (free). Data only. Unknown/structural upstream changes open an
 # issue for a human instead of being interpreted automatically.
 on:
@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       reviewed:
-        description: I reviewed the upstream change and updated AlgoLens (clears the unreviewed flag)
+        description: I reviewed the upstream change and updated Draftlight (clears the unreviewed flag)
         type: boolean
         default: false
 

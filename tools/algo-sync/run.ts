@@ -23,7 +23,7 @@ const FILES = {
   labelRules: 'safety-label-user-agg/postToUserLabelRules.strato',
 } as const;
 
-/** Logic files whose changes may alter what AlgoLens tells users, even if no extracted value moves. */
+/** Logic files whose changes may alter what Draftlight tells users, even if no extracted value moves. */
 const WATCHED = [
   'xai-value-model/',
   'home-mixer/scorers/author_cold_start.rs',
@@ -43,7 +43,7 @@ function arg(name: string): string | undefined {
 }
 
 async function gh<T>(url: string, raw = false): Promise<T> {
-  const headers: Record<string, string> = { 'User-Agent': 'algolens-algo-sync', Accept: raw ? 'application/vnd.github.raw' : 'application/vnd.github+json' };
+  const headers: Record<string, string> = { 'User-Agent': 'draftlight-algo-sync', Accept: raw ? 'application/vnd.github.raw' : 'application/vnd.github+json' };
   if (process.env.GITHUB_TOKEN) headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
   const res = await fetch(url, { headers });
   if (!res.ok) throw new Error(`${res.status} ${res.statusText} for ${url}`);
@@ -52,7 +52,7 @@ async function gh<T>(url: string, raw = false): Promise<T> {
 
 async function fetchJson<T>(url: string): Promise<T | null> {
   try {
-    const res = await fetch(url, { headers: { 'User-Agent': 'algolens-algo-sync' } });
+    const res = await fetch(url, { headers: { 'User-Agent': 'draftlight-algo-sync' } });
     return res.ok ? ((await res.json()) as T) : null;
   } catch {
     return null;
@@ -116,7 +116,7 @@ async function main(): Promise<void> {
   }
   const structural = changes.filter((c) => c.kind === 'structural');
   const logicOnly = touched.filter((f) => !Object.values(FILES).includes(f as (typeof FILES)[keyof typeof FILES]));
-  // --reviewed: a human has checked the upstream diff and updated AlgoLens; clear the flag.
+  // --reviewed: a human has checked the upstream diff and updated Draftlight; clear the flag.
   pack.unreviewedChange = process.argv.includes('--reviewed')
     ? false
     : structural.length > 0 || logicOnly.length > 0 || (prev?.unreviewedChange ?? false);
@@ -131,7 +131,7 @@ async function main(): Promise<void> {
     writeFileSync(
       path.join(out, 'issue.md'),
       [
-        `Upstream ${REPO} changed in ways AlgoLens can't interpret automatically (${prev?.sourceSha.slice(0, 7)} → ${head.sha.slice(0, 7)}).`,
+        `Upstream ${REPO} changed in ways Draftlight can't interpret automatically (${prev?.sourceSha.slice(0, 7)} → ${head.sha.slice(0, 7)}).`,
         '',
         ...(structural.length ? ['**Structural changes**', ...structural.map((c) => `- ${c.text}`), ''] : []),
         ...(logicOnly.length ? ['**Logic files touched**', ...logicOnly.map((f) => `- \`${f}\``), ''] : []),

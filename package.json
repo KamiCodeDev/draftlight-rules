@@ -1,6 +1,6 @@
 {
-  "name": "algolens-rules",
-  "description": "Daily AlgoLens rules pack, extracted from xai-org/x-algorithm and published to GitHub Pages. Data only.",
+  "name": "draftlight-rules",
+  "description": "Daily Draftlight rules pack, extracted from xai-org/x-algorithm and published to GitHub Pages. Data only.",
   "private": true,
   "type": "module",
   "scripts": {
