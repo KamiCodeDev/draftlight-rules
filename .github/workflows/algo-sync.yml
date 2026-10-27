@@ -44,7 +44,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Open review issue
         if: steps.sync.outputs.structural == 'true'
-        run: gh issue create --title "algo-sync: upstream change needs review" --body-file site/issue.md --label algo-sync || gh issue create --title "algo-sync: upstream change needs review" --body-file site/issue.md
+        # Block scalar: a plain YAML scalar may not contain ": " (it made GitHub reject the whole file).
+        run: |
+          title="algo-sync: upstream change needs review"
+          gh issue create --title "$title" --body-file site/issue.md --label algo-sync || gh issue create --title "$title" --body-file site/issue.md
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - if: steps.sync.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
