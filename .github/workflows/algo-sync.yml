@@ -1,0 +1,58 @@
+name: algo-sync
+# Daily: rebuild the AlgoLens rules pack from xai-org/x-algorithm and publish it
+# to GitHub Pages (free). Data only. Unknown/structural upstream changes open an
+# issue for a human instead of being interpreted automatically.
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+    inputs:
+      reviewed:
+        description: I reviewed the upstream change and updated AlgoLens (clears the unreviewed flag)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  issues: write
+
+concurrency:
+  group: algo-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npx vitest run tools
+      - id: pages
+        uses: actions/configure-pages@v5
+      - id: sync
+        run: node tools/algo-sync/run.ts --out site --prev-url "${{ steps.pages.outputs.base_url }}" ${{ inputs.reviewed && '--reviewed' || '' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Open review issue
+        if: steps.sync.outputs.structural == 'true'
+        run: gh issue create --title "algo-sync: upstream change needs review" --body-file site/issue.md --label algo-sync || gh issue create --title "algo-sync: upstream change needs review" --body-file site/issue.md
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - if: steps.sync.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
+        run: rm -f site/issue.md && if ls pages/*.html >/dev/null 2>&1; then cp pages/*.html site/; fi
+      - if: steps.sync.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploy
+        if: steps.sync.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
+        uses: actions/deploy-pages@v4
